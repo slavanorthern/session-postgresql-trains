@@ -1,0 +1,19 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Локальные настройки и секреты
+config.yaml
+.env
+
+# Системные файлы
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Архивы
+*.zip
