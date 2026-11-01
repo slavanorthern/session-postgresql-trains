@@ -1,21 +1,36 @@
-# Загрузка настроек проекта (в данном случае только настроек соединения с БД)
-# из файла config.yaml.
+from pathlib import Path
+
 import yaml
 
+
 class ProjectConfig:
-    """Класс считывает базовые настройки из файла config.yaml"""
+    """Загрузка настроек подключения к PostgreSQL."""
 
     def __init__(self):
-        with open('config.yaml') as f:
-            config = yaml.safe_load(f)
-            self.dbname = config['dbname']
-            self.user = config['user']
-            self.password = config['password']
-            self.host = config['host']
-            self.dbtableprefix = config['dbtableprefix']
+        config_path = Path(__file__).resolve().parent / "config.yaml"
 
-# Этот метод запускается только, если запускать
-# данный файл, а не подключать его.
+        with config_path.open("r", encoding="utf-8") as file:
+            config = yaml.safe_load(file)
+
+        if not isinstance(config, dict):
+            raise ValueError("Некорректный файл config.yaml")
+
+        required = (
+            "dbname", "user", "password",
+            "host", "dbtableprefix"
+        )
+
+        for key in required:
+            if key not in config:
+                raise ValueError(f"Отсутствует параметр: {key}")
+
+        self.dbname = config["dbname"]
+        self.user = config["user"]
+        self.password = config["password"]
+        self.host = config["host"]
+        self.dbtableprefix = config["dbtableprefix"]
+
+
 if __name__ == "__main__":
-    x = ProjectConfig()
-    print(x.dbfilepath)
+    ProjectConfig()
+    print("Конфигурация успешно загружена.")
