@@ -1,34 +1,32 @@
-# Установка соединения с базой данных
-# (параметры передаются через класс конфиг).
+
 import psycopg2
 
+
 class DbConnection:
+    """Подключение к PostgreSQL."""
 
     def __init__(self, config):
-        self.dbname = config.dbname
-        self.user = config.user
-        self.password = config.password
-        self.host = config.host
-        self.prefix = config.dbtableprefix
-        self.conn = psycopg2.connect(dbname = self.dbname,
-                                    user = self.user, 
-                                    password = self.password,
-                                    host = self.host)
+        self.schema = config.dbtableprefix.rstrip(".")
 
-    def __del__(self):
-        if self.conn:
-            self.conn.close()
+        if not self.schema:
+            raise ValueError("Не указана схема базы данных.")
+
+        self.conn = psycopg2.connect(
+            dbname=config.dbname,
+            user=config.user,
+            password=config.password,
+            host=config.host,
+            connect_timeout=5,
+        )
 
     def test(self):
-        cur = self.conn.cursor()
-        cur.execute("DROP TABLE IF EXISTS test CASCADE")
-        cur.execute("CREATE TABLE test(test integer)")
-        cur.execute("INSERT INTO test(test) VALUES(1)")
-        self.conn.commit()
-        cur.execute("SELECT * FROM test")
-        result = cur.fetchall()
-        cur.execute("DROP TABLE test")
-        self.conn.commit()
-        return (result[0][0] == 1)
-        
+        """Проверка подключения без изменения данных."""
+        with self.conn:
+            with self.conn.cursor() as cursor:
+                cursor.execute("SELECT 1")
+                return cursor.fetchone()[0] == 1
 
+    def close(self):
+        """Закрытие соединения."""
+        if self.conn and not self.conn.closed:
+            self.conn.close()
